@@ -1,12 +1,12 @@
 from PyQt5 import QtWidgets, uic
 from PyQt5.QtSerialPort import QSerialPort, QSerialPortInfo
 from PyQt5.QtCore import QIODevice
-# from pyqtgraph import PlotWidget
-# import pyqtgraph as pg
-# import sys
+from pyqtgraph import PlotWidget
+import pyqtgraph as pg
+import sys
 
 app = QtWidgets.QApplication([])
-ui = uic.loadUi('test.ui')
+ui = uic.loadUi('design.ui')
 ui.setWindowTitle('SerialGUI')
 
 serial = QSerialPort()
@@ -24,7 +24,11 @@ def onOpen():
 def onClose():
     serial.close()
 
-posX, posY = 800, 60
+posX, posY = 430, 0
+listX, listY = [], []
+for x in range(100):
+    listX.append(x)
+    listY.append(0)
 
 def onRead():
     rx = serial.readLine()
@@ -34,14 +38,25 @@ def onRead():
         ui.barTemp.setValue(int(float(data[3])*10))
         ui.labelTemp.setText(data[3])
         ui.lcdNumber.display(data[1])
+        global listX; global listY
+        listY = listY[1:]
+        listY.append(int(data[2]))
+        ui.graph.clear()
+        ui.graph.plot(listX, listY)
     elif data[0] == '1':
-        ui.btnCircle.setChecked(data[1] == '0')
+        if data[1] == '0':
+            ui.btnCircle.setVisible(True)
+            ui.btnCircle.setChecked(True)
+        else:
+            ui.btnCircle.setChecked(False)
     elif data[0] == '2':
-        global posX
-        global posY
+        global posX; global posY
         posX += int((int(data[1]) - 512) / 100)
         posY += int((int(data[2]) - 512) / 100)
+        ui.btnCircle.setVisible(True)
         ui.btnCircle.setGeometry(posX, posY, 20, 20)
+    else:
+        ui.btnCircle.setVisible(False)
 
 def serialSend(data):   #список int
     txs = ''
@@ -96,6 +111,8 @@ ui.sliderB.valueChanged.connect(rgbControl)
 ui.servoAngel.valueChanged.connect(servoControl)
 
 ui.btnSend.clicked.connect(sendText)
+
+ui.btnCircle.setGeometry(posX, posY, 20, 20)
 
 ui.show()
 app.exec()
