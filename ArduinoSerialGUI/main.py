@@ -113,6 +113,7 @@ ui.servoAngel.valueChanged.connect(servoControl)
 ui.btnSend.clicked.connect(sendText)
 
 ui.btnCircle.setGeometry(posX, posY, 20, 20)
+ui.btnCircle.setVisible(False)
 
 ui.show()
 app.exec()
